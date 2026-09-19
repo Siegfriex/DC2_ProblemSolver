@@ -1,0 +1,9 @@
+# STEP1_류지환의생산공장.ipynb 전용 의존성
+# 이 노트북이 실제로 import 하는 것만 담는다. (pandas / ortools / IPython)
+# 버전은 하한만 둔다 — 다른 로컬·OS 에서도 설치가 깨지지 않게.
+# 검증에 쓴 정확한 버전은 README.md "검증 환경" 표 참고.
+
+ortools>=9.10          # pywraplp (SCIP 백엔드) — 정수계획 solver
+pandas>=2.2            # 결과 표 구조화
+ipykernel>=6.29        # 주피터 커널
+jupyterlab>=4.0        # 노트북 실행 환경 (VS Code 로 열면 불필요)
