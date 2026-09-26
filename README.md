@@ -26,9 +26,11 @@ STEP2 는 **Solver 안쪽**으로 들어간다 — Simplex 가 왜 부등식을 
 | 1 | 왜 부등식을 등식으로 바꾸는가? | ✅ 2-1 |
 | 2 | Slack / Surplus 는 무엇인가? | ✅ 2-1 · 2-2 |
 | 3 | Artificial Variable 은 왜 필요한가? | ✅ 2-3 |
-| 4 | Basis 란 무엇인가? | ✅ 2-4 · 2-5 (정의까지) |
-| 5 | Basic Solution 은 어떻게 계산하는가? | ⬜ 다음 |
-| 6 | Basic Feasible Solution 과 그래프의 꼭짓점은 왜 같은가? | ⬜ 다음 |
+| 4 | Basis 란 무엇인가? | ✅ 2-4 · 2-5 |
+| 5 | Basic Solution 은 어떻게 계산하는가? | ✅ 2-5 · 2-6 |
+| 6 | Basic Feasible Solution 과 그래프의 꼭짓점은 왜 같은가? | ✅ 2-6 · 2-7 |
+
+마지막에 **STEP 2 Reconstruction** 마크다운으로 Slack → Surplus → Artificial → Basis → Basic Solution → BFS → Geometry 를 한 번에 정리했다.
 
 확인한 수치:
 
@@ -38,7 +40,13 @@ STEP2 는 **Solver 안쪽**으로 들어간다 — Simplex 가 왜 부등식을 
 | 2-2 Surplus | 같은 계획의 Profit | 실제 220 → `s_P = 10`, `20x+100y-s_P = 210` 성립 |
 | 2-3 Artificial | Phase I 직관 — `max(0, 210 - profit)` 등고선 | Profit 목표선 바깥쪽에서만 `a_P > 0` |
 | 2-4 Standard Form | 계수행렬 | `A.shape = (3, 6)` · `rank(A) = 3` |
-| 2-5 Basis | 3개의 선형독립 column 선택 → `x_B = B⁻¹b` | 정의까지. 열거·계산은 다음 단계 |
+| 2-5 Basis | 초기 Basis `B₀ = [A_sH, A_sT, A_aP] = I` | `x_B = b = (80, 100, 210)` · `A z₀ = b` 성립 |
+| 2-6 전수조사 | `C(6,3) = 20` 개 column 조합 → rank 검사 → `B x_B = b` → `x_B ≥ 0` | rank 3 인 Basis **16개** (4개는 특이) · Phase-I BFS **6개** · 원 문제 BFS (`a_P = 0`) **5개** |
+| 2-6 꼭짓점 | 원 문제 BFS 5개를 (x, y) 평면에 | V1 (6.67, 1.43) · V2 (10.5, 0) · V3 (13.33, 0) · V4 (0, 2.1) · V5 (0, 2.38) = feasible 다각형의 꼭짓점 5개 |
+| 2-7 Linear Combination | Basis `[A_x, A_y, A_sP]` | `x_B = (6.67, 1.43, 66.19)` → 세 column 기여의 합이 `b = (80, 100, 210)` 과 일치 · 3D 화살표 이어붙이기 그림 |
+
+Phase-I BFS 6개 중 원 문제 BFS 가 아닌 하나는 초기 Basis `(s_H, s_T, a_P)` 다 — 여기서는 `a_P = 210`.
+나머지 5개는 전부 `a_P = 0` 이므로 Phase I 의 `min a_P` 가 0 까지 내려갈 수 있고, 즉 이 교보재 인스턴스는 feasible 하다.
 
 핵심은 **`Az = z₁A₁ + ... + z₆A₆`** — A 의 column 들을 변수 값만큼 섞어 `b` 를 만드는 문제로
 읽는 시점부터 선형대수와 OR 이 같은 물건이 된다는 것.
@@ -71,7 +79,7 @@ Simplex 의 기계장치를 눈으로 보기 위해 일부러 여유를 준 **�
 | Level | 질문 | 어디서 |
 |---|---|---|
 | 1 — Feasibility | 모든 목표를 동시에 만족할 수 있는가? | ✅ STEP1 (`0919_SCIP`) — INFEASIBLE |
-| — 기계장치 | Solver 는 그 답을 **어떻게** 내는가? | ✅ **STEP2 (이 브랜치)** — Standard Form · Basis |
+| — 기계장치 | Solver 는 그 답을 **어떻게** 내는가? | ✅ **STEP2 (이 브랜치)** — Standard Form · Basis · BFS = 꼭짓점 |
 | 2 — Goal Programming | 전부 만족할 수 없다면 무엇부터 지킬 것인가? | ⬜ 미착수 |
 | 3 — Resource Sensitivity | 인간시간 또는 Token 을 줄이면 결과가 어떻게 변하는가? | ⬜ 미착수 |
 
@@ -118,9 +126,9 @@ STEP2 의 그림 라벨은 전부 영문이므로 별도 폰트 설정 없이 �
 
 ## 검증 환경
 
-아래 조합에서 `jupyter nbconvert --execute` 로 **전 셀 위에서 아래로 재실행 · 오류 0 · 그림 3장 정상 생성**
-을 확인했다 (2026-09-21).
-확인된 주요 결과: `s_H = 18` · `s_P = 10` · `A.shape = (3, 6)` · `rank(A) = 3`.
+아래 조합에서 `jupyter nbconvert --execute` 로 **전 셀 위에서 아래로 재실행 · 오류 0 · 그림 6장 정상 생성**
+을 확인했다 (2026-09-26, 2-7 까지 포함).
+확인된 주요 결과: `s_H = 18` · `s_P = 10` · `A.shape = (3, 6)` · `rank(A) = 3` · rank-3 Basis 16개 · Phase-I BFS 6개 · 원 문제 BFS 5개.
 
 | 항목 | 버전 |
 |---|---|
@@ -145,12 +153,14 @@ STEP2 의 그림 라벨은 전부 영문이므로 별도 폰트 설정 없이 �
 
 ### 아직 다듬지 않은 것 (다음 커밋 예정)
 
-이 커밋은 **오늘 공부한 지점까지를 그대로** 남기는 것이 목적이라 아래는 손대지 않았다.
+이 커밋도 **공부한 지점까지를 그대로** 남기는 것이 목적이라 노트북 본문은 손대지 않았다. 계산 결과에는 영향이 없는 것들이다.
 
-- 2-5 Basis 는 정의까지만 — `C(6,3) = 20` 개 조합 열거 · `x_B = B⁻¹b` 계산 · BFS 와 그래프 꼭짓점 대조가 다음 단계다
-  (그래서 셀 1 의 `itertools.combinations` 와 `sympy` 는 import 만 되어 있다)
-- `print(md(...))` 두 곳에서 출력 아래에 `None` 이 한 줄 찍힌다 — `md()` 가 이미 `display` 를 하므로 `print` 는 불필요
+- `print(md(...))` 여러 곳에서 출력 아래에 `None` 이 한 줄씩 찍힌다 — `md()` 가 이미 `display` 를 하므로 `print` 는 불필요
 - 2-4 뒤 마크다운의 `Z ... A ... = B ...` 수식 블록이 깨져 있다
+- 2-6 전수조사 셀 마지막 `md(...)` 문자열의 `\boxed`·`\rightarrow` 가 일반 문자열이라 `SyntaxWarning: invalid escape sequence` 가 뜨고 수식이 렌더되지 않는다 (`r"..."` 로 바꾸면 해결)
+- 2-7 의 3D 시각화 셀 아래쪽에 바로 앞 셀(Basis 선택 · contribution 표) 코드가 한 번 더 붙어 있다 — 같은 표가 두 번 출력된다
+- 오탈자: `oringinal_bfs_df` · `Humena Equation` · `FEASIBL`
+- `sympy` 는 여전히 import 만 되어 있다
 
 ## 브랜치 규칙
 
