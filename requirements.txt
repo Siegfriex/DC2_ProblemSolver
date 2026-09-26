@@ -1,4 +1,4 @@
-# STEP1 · STEP2 노트북 전용 의존성
+# STEP1 · STEP2 · STEP3 노트북 전용 의존성
 # 이 브랜치의 노트북이 실제로 import 하는 것만 담는다.
 # 버전은 하한만 둔다 — 다른 로컬·OS 에서도 설치가 깨지지 않게.
 # 검증에 쓴 정확한 버전은 README.md "검증 환경" 표 참고.
@@ -12,4 +12,7 @@ jupyterlab>=4.0        # 노트북 실행 환경 (VS Code 로 열면 불필요)
 # ── STEP2 에서 추가된 것 ─────────────────────────────────────────
 numpy>=1.26            # 계수행렬 A · meshgrid · matrix_rank
 matplotlib>=3.8        # Slack / Surplus / Phase I 시각화 3장
-sympy>=1.12            # 2-5 Basis 이후 기호 계산용 (현재는 import 까지)
+sympy>=1.12            # STEP2 는 import 만 · STEP3 에서 실제 사용 (rref · linsolve)
+
+# ── STEP3 에서 추가된 것 ─────────────────────────────────────────
+# 없음 — STEP3 는 위 패키지(sympy · numpy · pandas · matplotlib)만으로 돈다
