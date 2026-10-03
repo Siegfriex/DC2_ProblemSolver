@@ -1,4 +1,4 @@
-# STEP1 · STEP2 · STEP3 노트북 전용 의존성
+# STEP1 · STEP2 · STEP3 · W03 Goal Programming 노트북 전용 의존성
 # 이 브랜치의 노트북이 실제로 import 하는 것만 담는다.
 # 버전은 하한만 둔다 — 다른 로컬·OS 에서도 설치가 깨지지 않게.
 # 검증에 쓴 정확한 버전은 README.md "검증 환경" 표 참고.
@@ -16,3 +16,6 @@ sympy>=1.12            # STEP2 는 import 만 · STEP3 에서 실제 사용 (rre
 
 # ── STEP3 에서 추가된 것 ─────────────────────────────────────────
 # 없음 — STEP3 는 위 패키지(sympy · numpy · pandas · matplotlib)만으로 돈다
+
+# ── W03 Goal Programming 에서 추가된 것 ─────────────────────────
+# 없음 — ortools(SCIP) · numpy · pandas · matplotlib 만 쓴다 (sympy 는 import 만)

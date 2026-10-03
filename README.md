@@ -1,54 +1,59 @@
-# 0926_FreeVariable — 생산공장 모델 STEP3 (Free Variable · Rank · Dimension)
+# 1001_GoalProgramming — Goal Programming (연습문제 9-4 현대가구)
 
 > 의사결정2 · 홍익대 2026-2 · 류지환
-> 브랜치 주제: **"자유변수" 라는 말 아래 섞여 있는 세 가지 개념을 분리한다 — RREF Free Variable · LP Unrestricted Variable · Simplex Nonbasic Variable**
-> 직전 브랜치: [`0921_StandardForm`](../../tree/0921_StandardForm) (STEP2 · Standard Form · Basis)
+> 브랜치 주제: **모든 목표를 동시에 만족할 수 없을 때, 어떤 목표를 얼마나 희생할 것인가 — Preemptive Goal Programming**
+> 직전 브랜치: [`0926_FreeVariable`](../../tree/0926_FreeVariable) (STEP3 · Free Variable · Rank · Dimension)
 
 ## 이 브랜치에 있는 것
 
 | 파일 | 내용 |
 |---|---|
-| `STEP3_류지환의생산공장.ipynb` | **이번 주제** — Free Variable · Rank · Dimension |
-| `STEP2_류지환의생산공장.ipynb` | 직전 주제 (Standard Form · Basis · BFS = 꼭짓점). 브랜치 규칙상 함께 들고 간다 |
+| `W03_Exercise_9_4_Goal_Programming_DeepDive.ipynb` | **이번 주제** — 연습문제 9-4 를 Goal Programming 으로 푼다 |
+| `STEP3_류지환의생산공장.ipynb` | 직전 주제 (Free Variable · Rank · Dimension). 브랜치 규칙상 함께 들고 간다 |
+| `STEP2_류지환의생산공장.ipynb` | 그 전 주제 (Standard Form · Basis · BFS) |
 | `STEP1_류지환의생산공장.ipynb` | 그 전 주제 (SCIP Feasibility) |
-| `requirements.txt` | 세 노트북을 돌리기 위한 최소 의존성 (STEP3 에서 새로 추가된 패키지 없음) |
+| `requirements.txt` | 노트북들을 돌리기 위한 최소 의존성 (이번에 새로 추가된 패키지 없음) |
 | `README.md` | 이 문서 |
 
-## STEP3 가 다루는 것
+## 이번 노트북이 다루는 것
 
-STEP2 에서 Basis 를 고르면 나머지 변수를 0 으로 둔다고 했다. 그런데 선형대수에서는 "Pivot 이 없는 변수는 **자유롭게** 움직인다" 고 배운다.
-둘 다 "free" 처럼 들리지만 정반대의 이야기다. STEP3 는 이 혼동을 세 개념으로 쪼개고, 각각을 계산과 그림으로 확인한다.
+> ⚠ 이 노트북은 생산공장 모델이 아니라 **교재 연습문제 9-4 (현대가구)** 다.
+> Goal Programming 기법을 작은 문제에서 먼저 익히는 단계이고, 생산공장 STEP1 의 INFEASIBLE 에 적용하는 것은 아직 하지 않았다.
 
-| 개념 | 등장 장소 | 뜻 | 노트북 |
-|---|---|---|---|
-| RREF Free Variable | 선형대수 | Pivot 이 없어서 해집합의 자유도를 만드는 변수 | 3-1 · 3-2 |
-| Unrestricted Variable | LP Modeling | 부호 제한이 없는 변수 — `u = u⁺ − u⁻` 로 분해 | 3-3 |
-| Nonbasic Variable | Simplex | 현재 Basis 밖이라 Basic Solution 계산에서 **0 으로 고정**하는 변수 | 3-4 |
+| 항목 | 책상 1 | 책상 2 |
+|---|---:|---:|
+| 작업시간 | 2시간 | 1시간 |
+| 단위이익 | 2만원 | 3만원 |
+| 최소 수요 | 280개 | 400개 |
+
+목표 (우선순위 순): P1 정규 작업시간 800시간 초과 금지 → P2 책상 1·2 수요 충족 → P3 총이익 1500만원.
+
+흐름: 문제 구조 → 결정변수 → Goal 행렬 `G` (ℝ² → ℝ⁴) → 수요만 맞춰 보기 → 전부 Hard Constraint 로 강제 (INFEASIBLE) → 2D 그림 →
+Deviation Variable `Gx + d⁻ − d⁺ = t` → 편차 계산 함수 → **Priority 1 → 2 → 3** → 결과 그림.
+
+핵심은 **다음 Priority 로 넘어갈 때 `x` 가 아니라 앞 단계의 최적 성과(`d₁⁺ ≤ 0` 등)를 고정한다**는 것이다.
 
 확인한 수치:
 
 | 절 | 내용 | 결과 |
 |---|---|---|
-| 3-1 RREF | P0·P1·P2 3변수, 등식 2개 (`20x₀+30x₁+40x₂=120`, `6x₀+12x₁+14x₂=44`) 의 `[A\|b]` 를 sympy `rref()` | Pivot column `(0, 1)` → `x₂` 가 free. 해 `x = p + t·d`, `p = (2, 8/3, 0)`, `d = (−1, −2/3, 1)` |
-| 3-1 검증 | `A @ p`, `A @ d` · `t = 0 ~ 2` 9점 | `A p = (120, 44) = b` · `A d = (0, 0)` · t 를 바꿔도 Profit 120 · Human 44 그대로 · 해집합 직선 3D 그림 |
-| 3-2 Dimension | 차원 네 종류 + NumPy `ndim` | Ambient 3 · `rank(A) = 2` · Nullity 1 · 해집합 차원 1 · `ndim = 1` (`shape = (3,)`) — 수학적 차원과 배열 축 수는 다른 것 |
-| 3-3 Unrestricted | `u = −3` 을 `u⁺ − u⁻` 로 | `(u⁺, u⁻) = (0,3), (1,4), …, (5,8)` 모두 `−3` — 분해가 유일하지 않다 · 그림 1장 |
-| 3-4 Nonbasic | STEP2 의 `A` (3×6), `b = (80, 100, 210)` 에서 Basis `{x, s_H, s_T}` | `x = 10.5` · `s_H = 17` · `s_T = 37`, Nonbasic `y = s_P = a_P = 0` (STEP2 의 꼭짓점 V2 와 같은 점) |
+| 4 | 수요만 정확히 맞춘 계획 `(280, 400)` | 작업시간 960 → 초과 160시간 · 이익 1760 |
+| 5 | 네 목표를 전부 Hard Constraint 로 (SCIP) | `INFEASIBLE` — `2·280 + 400 = 960 > 800` |
+| 10 | P1 `min d₁⁺` | **0** → `2x₁ + x₂ ≤ 800` 이 남는다 |
+| 11 | P2 `min d₂⁻ + d₃⁻` (단 `d₁⁺ ≤ 0`) | **80** at `(200, 400)` — 같은 시간이면 책상 2 가 부족분을 2배 빨리 줄인다. 비교: `(280, 240)` 은 160 |
+| 12 | P3 `min d₄⁻` (단 P1 · P2 성과 유지) | **0** — 해가 `(200, 400)` 하나뿐이고 이익 1600 ≥ 1500 |
 
-마지막에 Decision · Slack · Surplus · Artificial · RREF free · Unrestricted · Basic · Nonbasic 8종 변수를 한 표로 정리했다.
+**최종 해: 책상 1 = 200, 책상 2 = 400 · 작업시간 800 · 초과작업 0 · 책상 1 수요 80개 미달 · 이익 1600만원.**
+희생된 목표는 책상 1 수요 하나뿐이다. 최종 해는 solver 의 편차 값이 아니라 `evaluate_plan(200, 400)` 으로 다시 계산해 대조했다
+(목적함수에 없는 편차는 solver 가 임의 값을 낼 수 있기 때문).
 
-핵심은 **`x = p + t·d`, `A d = 0`** — `d` 방향으로 아무리 움직여도 `A` 가 재는 양(Profit, Human)은 변하지 않는다.
-"벡터가 많다고 공간이 넓어지는 게 아니라 **독립 방향**이 늘어야 한다" 는 rank / basis / null-space 이야기와 같은 물건이다.
+### 원본에서 고친 것
 
-### ⚠ 모델 인스턴스 — 절마다 다르다
-
-| 절 | 쓰는 모델 | STEP1 · STEP2 와의 관계 |
-|---|---|---|
-| 3-1 · 3-2 | P0 · P1 · P2 **3변수**, 제약 2개를 **등식**으로 둔 교보재 | 새 인스턴스. 부등식·목표·상한 없이 "미지수 3 > 방정식 2 → 자유도 1" 만 보기 위한 설정. 원 문제의 판정과 무관 |
-| 3-3 | 가상의 변수 `u` 하나 | 생산공장 모델과 무관한 개념 예시 |
-| 3-4 | STEP2 교보재 (P0·P3 2변수 연속, H ≤ 80, T ≤ 100, Profit ≥ 210) | STEP2 와 **동일** — 상한을 STEP1 (60 / 65) 에서 올린 이유는 `0921_StandardForm` README 참조 |
-
-원 문제의 판정은 여전히 STEP1 의 `INFEASIBLE` 과 "나머지를 다 지키면 이익 상한 160 만원" 이다.
+- `build_goal_model()` 의 Goal 1 식 부호: `+ d_plus[1] − d_minus[1]` → `+ d_minus[1] − d_plus[1]`.
+  마크다운 식 `2x₁ + x₂ + d₁⁻ − d₁⁺ = 800` 과 Goal 2~4 의 형태에 맞춘 것이다. 고치기 전에는 `d_plus[1]` 이 "남는 시간" 을 뜻해서,
+  P1 이 초과작업이 아니라 남는 시간을 줄였고, P2 · P3 는 `x ≈ 1e20` 의 무의미한 해를 냈다
+- 함수 끝에 남아 있던 `sp;` 를 지우고 `return solver, x1, x2, d_plus, d_minus` 를 넣었다
+- 빈 마지막 셀 자리에 10 ~ 12절 (P1 · P2 · P3 셀 · 결과 표 · 그림) 과 13절 Part (2) 자리를 추가했다
 
 ## 난이도 단계 — 어디까지 왔나
 
@@ -56,23 +61,21 @@ STEP2 에서 Basis 를 고르면 나머지 변수를 0 으로 둔다고 했다. 
 |---|---|---|
 | 1 — Feasibility | 모든 목표를 동시에 만족할 수 있는가? | ✅ STEP1 (`0919_SCIP`) — INFEASIBLE |
 | — 기계장치 | Solver 는 그 답을 **어떻게** 내는가? | ✅ STEP2 (`0921_StandardForm`) — Standard Form · Basis · BFS = 꼭짓점 |
-| — 개념 정리 | "자유변수" · "차원" 은 각각 무엇을 말하는가? | ✅ **STEP3 (이 브랜치)** — RREF free / Unrestricted / Nonbasic · rank · nullity |
-| 2 — Goal Programming | 전부 만족할 수 없다면 무엇부터 지킬 것인가? | ⬜ 미착수 |
+| — 개념 정리 | "자유변수" · "차원" 은 각각 무엇을 말하는가? | ✅ STEP3 (`0926_FreeVariable`) |
+| 2 — Goal Programming | 전부 만족할 수 없다면 무엇부터 지킬 것인가? | 🔶 **이 브랜치** — 기법을 연습문제 9-4 로 학습 (Preemptive 완료 · Weighted 미작성). 생산공장 모델 적용은 미착수 |
 | 3 — Resource Sensitivity | 인간시간 또는 Token 을 줄이면 결과가 어떻게 변하는가? | ⬜ 미착수 |
-
-STEP2 · STEP3 는 Level 1 → 2 사이에 끼워 넣은 단계다. Level 2 (Goal Programming) 는 아직 숙제로 남아 있다.
 
 ## 실행 방법 (다른 로컬에서 새로 시작할 때)
 
 ```bash
-git clone -b 0926_FreeVariable https://github.com/Siegfriex/DC2_ProblemSolver.git
+git clone -b 1001_GoalProgramming https://github.com/Siegfriex/DC2_ProblemSolver.git
 cd DC2_ProblemSolver
 
 python3 -m venv .venv                 # Python 3.12 권장 (3.10 이상)
 source .venv/bin/activate             # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-jupyter lab STEP3_류지환의생산공장.ipynb
+jupyter lab W03_Exercise_9_4_Goal_Programming_DeepDive.ipynb
 ```
 
 `uv` 를 쓴다면:
@@ -98,15 +101,14 @@ VS Code 에서 열 경우엔 등록 없이 우측 상단에서 `.venv` 인터프
 
 ### 그래프의 한글
 
-STEP2 · STEP3 의 그림 라벨은 전부 영문이므로 별도 폰트 설정 없이 어느 OS 에서나 깨지지 않는다.
+STEP2 · STEP3 · W03 의 그림 라벨은 전부 영문이므로 별도 폰트 설정 없이 어느 OS 에서나 깨지지 않는다.
 (`axes.unicode_minus = False` 만 설정 — 마이너스 기호가 □ 로 나오는 것을 막는다.)
 
 ## 검증 환경
 
-아래 조합에서 `jupyter nbconvert --execute` 로 STEP3 를 **전 셀 위에서 아래로 재실행 · 오류 0 · 그림 2장 정상 생성**
-을 확인했다 (2026-09-26).
-확인된 주요 결과: Pivot columns `(0, 1)` · `A p = b` · `A d = 0` · `rank = 2` · nullity 1 · 3-4 Basis `{x, s_H, s_T}` → `(10.5, 17, 37)`.
-STEP2 는 `0921_StandardForm` 에서 같은 환경으로 검증했고 이 브랜치에서 내용이 바뀌지 않았다.
+아래 조합에서 `jupyter nbconvert --execute` 로 W03 노트북을 **전 셀 위에서 아래로 재실행 · 오류 0 · 그림 2장 정상 생성**
+을 확인했다 (2026-10-03). 노트북 안의 `assert` 가 `(x₁, x₂) = (200, 400)`, P1 = 0, P2 = 80, P3 = 0 을 검사한다.
+STEP1 ~ 3 은 이전 브랜치에서 같은 환경으로 검증했고 이 브랜치에서 내용이 바뀌지 않았다.
 
 | 항목 | 버전 |
 |---|---|
@@ -123,22 +125,19 @@ STEP2 는 `0921_StandardForm` 에서 같은 환경으로 검증했고 이 브랜
 
 주의할 점:
 
-- **pandas 3.x** 는 copy-on-write 와 string dtype 이 기본이다. 2.x 관용구(체이닝 대입 등)는 동작이 다르다.
-  이 노트북들은 `DataFrame` 생성과 표시만 하므로 2.2 이상이면 무방하다.
-- **SCIP** 는 ortools 휠에 포함되어 있어 별도 설치가 필요 없다. STEP3 는 ortools 를 import 만 하고 solver 는 부르지 않는다.
-- STEP3 는 STEP2 의 변수를 가져다 쓰지 않는다 — 3-4 의 `A`, `b` 를 노트북 안에서 다시 정의하므로 단독으로 돈다.
-- 노트북에 저장된 `execution_count` 는 저자가 학습하며 셀을 오가던 순서 그대로다.
-  숫자가 연속이 아닌 것은 정상이며, 위에서 아래로 한 번에 돌려도 같은 결과가 나오는 것은 위에서 확인했다.
+- **pandas 3.x** 는 copy-on-write 와 string dtype 이 기본이다. 이 노트북들은 `DataFrame` 생성과 표시만 하므로 2.2 이상이면 무방하다.
+- **SCIP** 는 ortools 휠에 포함되어 있어 별도 설치가 필요 없다.
+- W03 은 STEP 노트북의 변수를 쓰지 않고 단독으로 돈다.
+- Priority 단계마다 `build_goal_model()` 로 모형을 새로 만들고, 앞 단계 성과는 `≤ 최적값 + 1e-6` 제약으로 넘긴다.
 
-### 아직 다듬지 않은 것 (다음 커밋 예정)
+### 아직 하지 않은 것 · 다듬지 않은 것
 
-이 커밋은 **오늘 공부한 지점까지를 그대로** 남기는 것이 목적이라 노트북 본문은 손대지 않았다. 계산 결과에는 영향이 없는 것들이다.
-
-- STEP3: `print(md(...))` 세 곳에서 출력 아래에 `None` 이 찍힌다 (STEP2 와 같은 패턴)
-- STEP3: 맨 끝에 빈 코드 셀 2개
-- STEP3: 첫 셀의 `combinations` · `pywraplp` 는 import 만 되어 있다 (STEP2 에서 복사한 환경 셀)
-- STEP3: 오탈자 — `ecelon` · `parametrix solutiond` · `non-nagetive` · `1-dimentional` · 열 이름 `x2_p2`
-- STEP2: `0921_StandardForm` README 의 '아직 다듬지 않은 것' 목록 그대로
+- **13절 Part (2) Weighted Goal Programming** — 원문 (2)의 벌금비용을 확인한 뒤 작성 (자리와 식만 있음)
+- 학습 흐름의 Part C (대수 ↔ Matrix ↔ Geometry ↔ Python) · Part E (Reconstruction) 는 아직 별도 절이 없다
+- 첫 셀의 `HUMAN_CAP` · `TOKEN_CAP` · `PROFIT_TARGET` 은 STEP 노트북에서 복사된 값으로 이 문제에서는 쓰지 않는다. `combinations` · `sympy` 는 import 만
+- 7절 주석 "x 의 shape 는 2,1 → 결과 4,1" — 실제 NumPy shape 는 `(2,)` → `(4,)`
+- 오탈자 — "나쁜 편자"(2곳) · "책상 1 생산량 S" · "GoalPrograming"
+- STEP3 · STEP2: 이전 브랜치 README 의 '아직 다듬지 않은 것' 목록 그대로
 
 ## 브랜치 규칙
 
@@ -150,12 +149,13 @@ STEP2 는 `0921_StandardForm` 에서 같은 환경으로 검증했고 이 브랜
 | `0919_SCIP` | SCIP 정수계획 Feasibility | `STEP1_류지환의생산공장.ipynb` |
 | `0921_StandardForm` | Standard Form · Slack/Surplus/Artificial · Basis · BFS | `STEP2_류지환의생산공장.ipynb` (+ STEP1) |
 | `0926_FreeVariable` | Free Variable · Rank · Dimension · Unrestricted · Nonbasic | `STEP3_류지환의생산공장.ipynb` (+ STEP1 · STEP2) |
+| `1001_GoalProgramming` | Preemptive Goal Programming (연습문제 9-4) | `W03_Exercise_9_4_Goal_Programming_DeepDive.ipynb` (+ STEP1 ~ 3) |
 
 새 주제를 시작할 때:
 
 ```bash
 # ⚠ main 이 아니라 '직전 주제 브랜치' 에서 딴다
-git checkout -b <날짜>_<주제> 0926_FreeVariable
+git checkout -b <날짜>_<주제> 1001_GoalProgramming
 ```
 
 1. 위처럼 **직전 주제 브랜치에서** 새 브랜치를 만든다
